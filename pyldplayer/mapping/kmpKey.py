@@ -108,3 +108,9 @@ class ClassKeyboardPoint(MultiKeyboardKey):
 @dataclasses.dataclass
 class ClassKeyboardGravity(ClassKeyboardDisc):
     sensitivity : int
+
+
+@dataclasses.dataclass
+class ClassMouseDrag(ClassMouseODisc):
+    mode : int
+    sensitivity_y : int

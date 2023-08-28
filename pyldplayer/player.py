@@ -189,10 +189,11 @@ class LDPlayerMeta(type):
 
     def _execute_command(self, *command, ignore_error=False):
         command = [str(x) for x in command]
-        fullcommand = " ".join([self.config("path"), *command])
+        fullcommand = " ".join([self.ldConsolePath, *command])
+        
         try:
             proc : subprocess.CompletedProcess = subprocess.run(
-                [self.__class__.ldConsolePath, *command],
+                args=fullcommand,
                 stdout=subprocess.PIPE, 
                 timeout=LDPlayer.TIMEOUT
             )
