@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pyldplayer",
-    version="0.9.0",
+    version="0.9.2",
     author="Zackary W",
     description="python wrapper for ldplayer",
     packages=find_packages(),

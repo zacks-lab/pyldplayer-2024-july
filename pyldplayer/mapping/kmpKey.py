@@ -39,6 +39,8 @@ class KeyboardMap:
                 return ClassKeyboardPoint(**data)
             case "ClassKeyboardGravity":
                 return ClassKeyboardGravity(**data)
+            case "ClassMouseDrag":
+                return ClassMouseDrag(**data)
             case _:
                 raise ValueError("Unknown class type")
             
