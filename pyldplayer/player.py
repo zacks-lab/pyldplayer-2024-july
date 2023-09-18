@@ -6,7 +6,6 @@ from typing import Any
 import subprocess
 import os
 import warnings
-import toml
 import typing
 import inspect
 from pyldplayer.config import LDPlayerConfig
