@@ -61,19 +61,22 @@ class LDInterface:
     # ANCHOR extensions
     def adb_shell(self): pass
 
+CONFIG_FILE = "config.data"
+_script_execution_path = os.path.dirname(os.path.realpath(__file__))
+CONFIG_PATH = os.path.join(_script_execution_path, CONFIG_FILE)
+
+
 class LDPlayerMeta(type):
     _singleton = None
-    _config : dict = None
+    _appPath : str= None
     _instanceableCommands : typing.List[str] = None
-
-    CONFIG_PATH = "config.toml"
     TIMEOUT =10
     RAISE_RUNTIME_ERROR = True
     
     @property
     def appPath(self):
-        return self.config("path")
-
+        return self._appPath
+    
     @property
     def customizedConfigPath(self):
         return os.path.join(self.appPath, "vms", "customizeConfigs")
@@ -90,66 +93,8 @@ class LDPlayerMeta(type):
     def ldConsolePath(self):
         return os.path.join(self.appPath, "ldconsole.exe")
 
-    # SECTION config
-
-    def config(self, *keys : typing.List[str], default=_default):
-        target = self._config
-        for key in keys:
-            if default is _default:
-                target = target[key]
-            else:
-                target = target.get(key, _default)
-                if target is _default:
-                    return default
-        return target
-    
-        
-    def setConfig(self, *keys : typing.List[str], value):
-        target = self._config
-        for key in keys[:-1]:
-            if not isinstance(target, dict):
-                raise ValueError("Invalid key path")
-            
-            if key not in target:
-                target[key] = {}
-
-            target = target[key]
-
-        target[keys[-1]] = value
-
-    def saveConfig(self):
-        if not os.path.exists(self.CONFIG_PATH):
-            with open(self.CONFIG_PATH, "w") as f:
-                toml.dump({}, f)
-
-        with open(self.CONFIG_PATH, "r") as f:
-            config = toml.load(f)
-            config["pyldplayer"] = self._config
-
-        with open(self.CONFIG_PATH, "w") as f:
-            toml.dump(config, f)
-
-    def load_config(self):
-        if os.path.exists(self.CONFIG_PATH):
-            with open(self.CONFIG_PATH, "r") as f:
-                return toml.load(f).get("pyldplayer", {})
-        else:
-            return {}
     #!SECTION
     # SECTION prep
-    def _prep_config(self):
-        if self._config is not None:
-            return 
-        self._config = self.load_config()
-        if "path" in self._config:
-            pass
-        else:
-            self._config["path"] = find_ldconsole()
-        
-        self.saveConfig()
-        if "path" not in self._config or self._config["path"] is None:
-            raise ValueError("LDPlayer path not found")
-
     @staticmethod
     def _prep_instanceable_commands(cls):
         _instanceableCommands = []
@@ -173,31 +118,65 @@ class LDPlayerMeta(type):
 
     #!SECTION
     # SECTION misc
-    def __new__(cls, *args: Any, **kwds: Any) -> Any:
 
+    def __new__(cls, *args: Any, **kwds: Any) -> Any:
         newcls = super().__new__(cls, *args, **kwds)
         cls._instanceableCommands = cls._prep_instanceable_commands(cls=newcls)
 
         return newcls
 
     def __call__(self, *args: Any, **kwds: Any) -> Any:
+        if self._appPath is None:
+            self._appPath = self._fetch_app_path()
+
+        if self._appPath is None:
+            raise RuntimeError("Failed to find console app")
+
         if self._singleton is None:
-            self._prep_config()
+            
             self._singleton = super().__call__(*args, **kwds)
 
         return self._singleton
 
+    @classmethod
+    def _fetch_app_path(cls):
+        def read_file():
+            with open(CONFIG_PATH, "r") as f:
+                path : str = f.read().strip()
+            return path
+        
+        def save_file(path : str):
+            with open(CONFIG_PATH, "w") as f:
+                f.write(path)
+
+        def remove_file():
+            if os.path.exists(CONFIG_PATH):
+                os.remove(CONFIG_PATH)
+            
+        if os.path.exists(CONFIG_PATH):
+            path = read_file()
+            if not os.path.exists(path):
+                remove_file()
+            else:
+                return path
+            
+        path = find_ldconsole()
+        if path is None:
+            return
+        save_file(path)
+        return path
+        
     def _execute_command(self, *command, ignore_error=False):
         command = [str(x) for x in command]
         fullcommand = " ".join([self.ldConsolePath, *command])
-        
+
         try:
             proc : subprocess.CompletedProcess = subprocess.run(
                 args=fullcommand,
                 stdout=subprocess.PIPE, 
-                timeout=LDPlayer.TIMEOUT
+                timeout=LDPlayer.TIMEOUT,
             )
-            
+
             comm : bytes = proc.stdout
         except subprocess.TimeoutExpired:
             raise RuntimeError("Failed to execute command: " + fullcommand)
@@ -236,13 +215,13 @@ class LDPlayer(LDInterface, metaclass=LDPlayerMeta):
     def launch(self, instance : typing.Union[str, int]):
         return self.__class__._execute_command(
             "launch", 
-            *self.__class__._prep_args(instance)
+            *self.__class__._prep_args(instance),
         )
 
     def reboot(self, instance : typing.Union[str, int]):
         return self.__class__._execute_command(
             "reboot", 
-            *self.__class__._prep_args(instance)
+            *self.__class__._prep_args(instance),
         )
 
     def list(self):
@@ -547,8 +526,7 @@ class LDPlayer(LDInterface, metaclass=LDPlayerMeta):
         return self.__class__._execute_command(
             "launchex",
             *self.__class__._prep_args(instance),
-            "--packagename",
-            packagename
+            "--packagename", packagename,
         )
     
     def operatelist(self, instance : typing.Union[str, int]):
