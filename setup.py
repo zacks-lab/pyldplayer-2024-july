@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pyldplayer",
-    version="0.9.2",
+    version="0.9.4",
     author="Zackary W",
     description="python wrapper for ldplayer",
     packages=find_packages(),
@@ -17,4 +17,9 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
+    entry_points={
+        "console_scripts": [
+            "ldplayer_init = pyldplayer.init:ld_init"
+        ]
+    }
 )
