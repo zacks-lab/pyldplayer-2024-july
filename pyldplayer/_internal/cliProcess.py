@@ -10,6 +10,9 @@ class LDProcess:
     """
     used to connect to the dnconsole.exe cli
     """
+    def __hash__(self) -> int:
+        return hash(self.path)
+
     def __init__(self, path : str):
         if not os.path.exists(path):
             raise RuntimeError("Could not find ldconsole.exe")
@@ -56,12 +59,12 @@ class LDProcess:
 _global_process = None
 
 @cache
-def ldprocess(set_global: LDProcess = None, raise_e: bool = False):
+def ldprocess(set_global: typing.Union[str, LDProcess] = None, raise_e: bool = False):
     """
     Initializes and returns the LDProcess object for the current session.
 
     Args:
-        set_global (LDProcess): The LDProcess object to be set as the global process. 
+        set_global (LDProcess | str): The LDProcess object to be set as the global process. 
             If None, the global process will attempt to be initialized.
         raise_e (bool): Whether to raise an exception if an error occurs during initialization.
 
@@ -70,10 +73,14 @@ def ldprocess(set_global: LDProcess = None, raise_e: bool = False):
     """
     global _global_process
 
-    if set_global is not None:
+    if isinstance(set_global, LDProcess):
         _global_process = set_global
         return _global_process
-
+    
+    if isinstance(set_global, str):
+        set_global = LDProcess(set_global)
+        return set_global
+    
     if _global_process is not None:
         return _global_process
 
