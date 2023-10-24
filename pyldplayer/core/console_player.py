@@ -1,52 +1,36 @@
+from dataclasses import dataclass
 import typing
-
-class LDInstance:
-    def quit(self): 
-        """
-        quits the instance
-
-        does nothing if the instance is not running
-        """
-
-    def launch(self): 
-        """
-        launches the instance
-
-        does nothing if the instance is already running
-        """
-
-    def reboot(self): 
-        """
-        reboots the instance
-
-        if instance is not running, throws error
-
-        """
-
-    @property
-    def isrunning(self): 
-        """ 
-        returns true if the instance is running
-        """
-
-    def launchex(self, pkgname : str): 
-        """
-        Launches instance with specified package.
-
-        will not launch if the instance is already running
-
-        Args:
-            pkgname (str): The name of the package to launch.
-        """
-        pass
-        
+from pyldplayer._internal.cliProcess import LDProcess, ldprocess
+from pyldplayer._internal.meta import LDConsolePlayerI
+from pyldplayer.core.console_instance import LDConsoleInstance
 
 INSTANCE_PARAM = typing.Union[str, int]
 
-class LDPlayer:
+class LDConsolePlayer(LDConsolePlayerI):
+    @classmethod
+    def create(cls, path : str = None):
+        proc = ldprocess(path)
+        return cls(proc=proc)
+
+    @property
+    def allInstances(self):
+        return self.__class__.__class__.__instance_mapping[self.__proc]
+
+    def getInstance(self, id : INSTANCE_PARAM):
+        """
+        Returns the instance with the given ID.
+        """
+        if isinstance(id, str):
+            for instance in self.allInstances.values():
+                if instance.name == id:
+                    return instance
+        else:
+            return self.__class__.__class__.__instance_mapping[self.__proc][id]
+
+    #ANCHOR
     def quit(self, id : INSTANCE_PARAM): 
         """
-        Quit the current session.
+        end the current instance.
 
         Args:
             id (str, int): The identifier of the instance.
@@ -133,8 +117,8 @@ class LDPlayer:
     def runninglist(self): 
         pass
     
-    def list2(self): 
-        pass
+    def list2(self)-> typing.List['LDConsoleInstance']:
+        return self.__class__._resolve_list2(LDConsoleInstance, self.__proc)
 
     def add(self): pass
     def copy(self): pass
