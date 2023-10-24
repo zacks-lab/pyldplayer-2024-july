@@ -153,3 +153,4 @@ cython_debug/
 main.py
 config.toml
 pyldplayer/config.data
+pyldplayer/_internal/config.json
