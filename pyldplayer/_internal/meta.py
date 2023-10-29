@@ -1,5 +1,5 @@
 """
-this module is splitted from console_instance.py and console_player.py for better 
+this module is splitted from instance.py and player.py for better 
 readability | project clarity
 
 this module sets up instances and players to make sure only one instance of the same LDProcess
@@ -9,13 +9,14 @@ will be initialized
 from dataclasses import dataclass
 import typing
 
-from pyldplayer._internal.cliProcess import LDProcess
+from pyldplayer._internal.cliProcess import LDProcess, ldprocess
 
 class LDConsoleMeta(type):
     __instance_mapping : typing.Dict[LDProcess, typing.Dict[int, 'LDConsoleInstanceI']] = {}
 
+    @classmethod
     def _resolve_list2(
-        self, 
+        cls,
         itype : typing.Type['LDConsoleInstanceI'], 
         proc : LDProcess
     ):
@@ -75,20 +76,33 @@ class LDConsoleMeta(type):
 
         return instance
 
-    def __call__(self, *args, **kwds) -> typing.Union['LDConsoleInstanceI', 'LDConsolePlayerI']:
+    def __call__(self, *args, **kwds):
         if issubclass(self, LDConsolePlayerI):    
             return super().__call__(*args, **kwds)
         else:
             return self.__resolve_call_instance(*args, **kwds)
-        
-class LDConsolePlayerI(metaclass=LDConsoleMeta):
+
+_players = {}
+
+class LDConsolePlayerI:
     __proc : LDProcess
+
+    @classmethod
+    def init(cls, path : str = None,set_global :bool= False, use_current_process : bool = False):
+        global _players
+        proc = ldprocess(path, set_global, use_current_process)
+        if proc in _players:
+            return _players[proc]
+
+        newins = cls(proc=proc)
+        _players[proc] = newins
+        return newins
 
     def __init__(self, proc : LDProcess):
         self._LDConsolePlayer__proc = proc
 
     def list2(self)-> typing.List['LDConsoleInstanceI']:
-        return self.__class__._resolve_list2(LDConsoleInstanceI, self._LDConsolePlayer__proc)
+        return LDConsoleMeta._resolve_list2(LDConsoleInstanceI, self._LDConsolePlayer__proc)
 
 @dataclass(frozen=True)
 class LDConsoleInstanceI(metaclass=LDConsoleMeta):
