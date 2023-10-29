@@ -93,15 +93,28 @@ def _attempt_to_find_default():
 _attempt_to_find_default()
 
 
-def ldprocess(path : str = None, set_global: bool = False):
-    global _on_default_initialization
-    if _on_default_initialization is None and path is None:
-        raise RuntimeError("Could not find ldconsole.exe")
-    
-    if path is None:
-        return _on_default_initialization
-    
-    proc = LDProcess(path)
+def ldprocess(path : str = None, set_global: bool = False, use_current_process : bool = False):
+    if use_current_process and path is not None:
+        raise RuntimeError("Cannot specify both path and use_current_process")
+
+    if use_current_process:
+        path = find_ldconsole()
+        if path is None:
+            raise RuntimeError("Could not find ldconsole.exe")
+        config["console_path"] = path
+        config["console_dir"] = os.path.dirname(path)
+        proc =  LDProcess(path)
+    else:
+        
+        global _on_default_initialization
+        if _on_default_initialization is None and path is None:
+            raise RuntimeError("Could not find ldconsole.exe")
+        
+        if path is None:
+            return _on_default_initialization
+        
+        proc = LDProcess(path)
+
     if set_global:
         
         _on_default_initialization = proc
