@@ -3,10 +3,27 @@ from functools import cache
 import os
 import subprocess
 import typing
+from pyldplayer.utils.process import subprocess_exec
 from pyldplayer.utils.process_finder import find_ldconsole
 from pyldplayer._internal.config import config
 
-class LDProcess:
+class LDProcessMeta(type):
+    _instances : typing.Dict[str, 'LDProcess'] = {}
+
+    def __call__(cls, *args, **kw):
+        path = kw.pop("path", None)
+        if path is None and len(args) > 0:
+            path = args[0]
+        if path is None:
+            raise RuntimeError("Could not find ldconsole.exe")
+        
+        if path not in cls._instances:
+            cls._instances[path] = super().__call__(*args, **kw)
+
+        return cls._instances[path]
+            
+
+class LDProcess(metaclass=LDProcessMeta):
     """
     used to connect to the dnconsole.exe cli
     """
@@ -14,6 +31,9 @@ class LDProcess:
         return hash(self.path)
 
     def __init__(self, path : str):
+        if path is None:
+            raise RuntimeError("Could not find ldconsole.exe")
+
         if not os.path.exists(path):
             raise RuntimeError("Could not find ldconsole.exe")
         
@@ -42,64 +62,51 @@ class LDProcess:
         except subprocess.CalledProcessError as e:
             raise e
         
-        parsed = comm.decode("utf-8")
+        try:
+            parsed = comm.decode("utf-8")
+        except: # noqa
+            parsed = comm.decode("gbk")
+        
+        # return stripped and splitted
+        parsed = parsed.strip().split("\r\n")
+
+        parsed = list(filter(None, parsed))
+        parsed = list(map(lambda x: x.strip(), parsed))
+
         return parsed
 
     def exec(self, command : str, *args):
-        proc = subprocess.Popen( # noqa
-            [self.path, command, *args],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            creationflags=
-                subprocess.DETACHED_PROCESS |
-                subprocess.CREATE_NEW_PROCESS_GROUP | 
-                subprocess.CREATE_BREAKAWAY_FROM_JOB
-        )
+        subprocess_exec(self.path, command, *args)
         # todo logging    
 
-_global_process = None
+_on_default_initialization : LDProcess = None
 
-@cache
-def ldprocess(set_global: typing.Union[str, LDProcess] = None, raise_e: bool = False):
-    """
-    Initializes and returns the LDProcess object for the current session.
-
-    Args:
-        set_global (LDProcess | str): The LDProcess object to be set as the global process. 
-            If None, the global process will attempt to be initialized.
-        raise_e (bool): Whether to raise an exception if an error occurs during initialization.
-
-    Returns:
-        LDProcess: The initialized LDProcess object for the current session.
-    """
-    global _global_process
-
-    if isinstance(set_global, LDProcess):
-        _global_process = set_global
-        return _global_process
-    
-    if isinstance(set_global, str):
-        set_global = LDProcess(set_global)
-        return set_global
-    
-    if _global_process is not None:
-        return _global_process
+def _attempt_to_find_default():
+    global _on_default_initialization
 
     try:
         # Get the path of the console executable
         path = config.getnset("console_path", find_ldconsole)
+        config.getnset("console_dir", lambda: os.path.dirname(path))
+        _on_default_initialization = LDProcess(path)
+    except Exception:
+        return
 
-        if not os.path.exists(path):
-            raise RuntimeError("Could not find ldconsole.exe")
+_attempt_to_find_default()
 
-        if path is None:
-            raise RuntimeError("Could not find ldconsole.exe")
 
-        # Initialize the global process object
-        _global_process = LDProcess(path)
-    except Exception as e:
-        if raise_e:
-            raise e
+def ldprocess(path : str = None, set_global: bool = False):
+    global _on_default_initialization
+    if _on_default_initialization is None and path is None:
+        raise RuntimeError("Could not find ldconsole.exe")
     
-    return _global_process
+    if path is None:
+        return _on_default_initialization
+    
+    proc = LDProcess(path)
+    if set_global:
+        
+        _on_default_initialization = proc
 
-ldprocess()
+    return proc
+
