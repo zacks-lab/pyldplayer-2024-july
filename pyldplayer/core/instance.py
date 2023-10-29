@@ -1,6 +1,4 @@
 from dataclasses import dataclass
-from typing import Any
-import typing
 from pyldplayer._internal.cliProcess import LDProcess
 from pyldplayer._internal.meta import LDConsoleInstanceI
 
@@ -70,3 +68,9 @@ class LDConsoleInstance(LDConsoleInstanceI):
             name
         )
     
+    def adb(self, cmd : str):
+        return self.__proc.query(
+            "adb",
+            *self.__proc.instance_arg(self.id),
+            cmd
+        )

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import typing
 from pyldplayer._internal.cliProcess import LDProcess, ldprocess
 from pyldplayer._internal.meta import LDConsolePlayerI
-from pyldplayer.core.console_instance import LDConsoleInstance
+from pyldplayer.core.instance import LDConsoleInstance
 
 INSTANCE_PARAM = typing.Union[str, int]
 
