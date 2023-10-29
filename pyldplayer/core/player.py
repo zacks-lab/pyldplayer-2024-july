@@ -25,7 +25,7 @@ class LDConsolePlayer(LDConsolePlayerI):
                 if instance.name == id:
                     return instance
         else:
-            return self.__class__.__class__.__instance_mapping[self.__proc][id]
+            return self.__class__._LDConsoleMeta__instance_mapping[self.__proc][str(id)]
 
     #ANCHOR
     def quit(self, id : INSTANCE_PARAM): 
@@ -112,7 +112,7 @@ class LDConsolePlayer(LDConsolePlayerI):
         pass
 
     def list(self): 
-        pass
+        return self.__proc.query("list")
 
     def runninglist(self): 
         pass

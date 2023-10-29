@@ -20,18 +20,8 @@ class LDConsoleMeta(type):
         proc : LDProcess
     ):
         res = proc.query("list2")
-        if res is None:
+        if not res:
             return
-        
-        # split by \r\n
-        res = res.split("\r\n")
-        # remove empty strings
-        res = list(filter(None, res))
-
-        # remove first line
-        # ! i somehow forgot why this is needed
-        res = res[1:]
-
         # parse
         result = []
 
