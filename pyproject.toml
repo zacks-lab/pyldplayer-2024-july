@@ -4,3 +4,4 @@ line-length = 120
 [tool.ruff.extend-per-file-ignores]
 "**/__init__.py" = ["F401"]
 "**/__main__.py" = ["F401", "F811"]
+"**/_*.py" = ["F401"]
