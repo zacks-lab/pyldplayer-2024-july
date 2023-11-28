@@ -55,6 +55,10 @@ class LDConsolePlayer(ConsoleInterface):
 
         self.__instances = {}
 
+    @property
+    def path(self):
+        return self.__console.path
+
     def __resolve_id(self, id : typing.Union[str, int]):
         args = []
         if isinstance(id, str):
@@ -251,6 +255,20 @@ class LDConsolePlayer(ConsoleInterface):
         fastplay : bool = None, 
         cleanmode : bool = None
     ): 
+        """
+        Sets the global settings for the application.
+
+        :param fps: The frames per second to set. Must be an integer between 0 and 60.
+        :type fps: int, optional
+        :param audio: Indicates whether audio should be enabled. Defaults to None.
+        :type audio: bool, optional
+        :param fastplay: Indicates whether fast play should be enabled. Defaults to None.
+        :type fastplay: bool, optional
+        :param cleanmode: Indicates whether clean mode should be enabled. Defaults to None.
+        :type cleanmode: bool, optional
+        :return: The result of the execution of the "globalsetting" command.
+        :rtype: str
+        """
         args = []
         if fps is not None:
             # 0-60
@@ -284,6 +302,18 @@ class LDConsolePlayer(ConsoleInterface):
 # ANCHOR
 
     def __getitem__(self, id : typing.Union[str, int]):
+        """
+        Get an item from the instance dictionary by ID or name.
+
+        Parameters:
+            id (Union[str, int]): The ID or name of the item to retrieve.
+
+        Returns:
+            Any: The item with the given ID or name.
+
+        Raises:
+            KeyError: If no item with the given ID or name exists.
+        """
         if len(self.__instances) == 0:
             self.list2()
         for k, v in self.__instances.items():
