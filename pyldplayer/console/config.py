@@ -17,3 +17,4 @@ class LDModifyConfigDict(TypedDict):
     autorotate : typing.Optional[bool]
     lockwindow : typing.Optional[bool]
 
+    root : typing.Optional[bool]
