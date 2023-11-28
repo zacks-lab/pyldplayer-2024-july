@@ -5,13 +5,15 @@ setup(
     version="1.0.0a0",
     author="Zackary W",
     description="python wrapper for ldplayer",
-    packages=find_packages(),
+    packages=find_packages("pyldplayer"),
     install_requires=[
         "psutil",
         "pydantic",
+        "pygetwindow",
+        "pyautogui"
     ],
     python_requires=">=3.6",
-    long_description=open("README.md").read(),
+    long_description=open("README_PYPI.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/ZackaryW/pyldplayer",
     classifiers=[
