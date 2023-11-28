@@ -6,6 +6,9 @@ class LDConsoleMeta(type):
     _instances : dict = {}
 
     def __call__(cls, *args, **kw):
+        """
+        Initialize a new instance of the class and return it if it does not already exist, based on the provided path.
+        """
         path = kw.get("path", None)
         if path is None and len(args) > 0:
             path = args[0]
@@ -52,6 +55,19 @@ class LDConsole(metaclass=LDConsoleMeta):
         return args
 
     def query(self, command : str= None, *args, timeout : int = 10, record : bool = True, no_filter : bool = False):
+        """
+        Executes a query command and returns the parsed output as a list of strings.
+        
+        Args:
+            command (str, optional): The query command to execute. If not provided, the default command will be used. Defaults to None.
+            *args: Additional arguments for the query command.
+            timeout (int, optional): The maximum time to wait for the query command to complete, in seconds. Defaults to 10.
+            record (bool, optional): Whether to record the query command in the query history. Defaults to True.
+            no_filter (bool, optional): Whether to filter out empty strings from the parsed output. Defaults to False.
+        
+        Returns:
+            list: The parsed output of the query command as a list of strings.
+        """
         try:
             if command is None:
                 queryed = [self.path]
@@ -90,6 +106,13 @@ class LDConsole(metaclass=LDConsoleMeta):
         return parsed
     
     def exec(self, command : str, *args):
+        """
+        Executes a command with the given arguments.
+
+        Args:
+            command (str): The command to be executed.
+            *args (tuple): Additional arguments for the command.
+        """
         subprocess.Popen( # noqa
             [self.path, command, *args],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
