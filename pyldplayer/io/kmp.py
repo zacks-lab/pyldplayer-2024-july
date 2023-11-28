@@ -1,9 +1,20 @@
-
+import dataclasses
 import typing
+from pydantic import BaseModel, field_validator
+from typing_extensions import TypedDict
+import json
 
-from pyldplayer.mapping._coord import Coord, TimingCoord
-from pydantic import dataclasses
+class Coord(TypedDict):
+    x : int
+    y : int
 
+class TimingCoord(Coord):
+    timing : int
+
+class Resolution(TypedDict):
+    width: int
+    height: int
+    
 @dataclasses.dataclass
 class KeyboardMap:
     extraData : str
@@ -116,3 +127,60 @@ class ClassKeyboardGravity(ClassKeyboardDisc):
 class ClassMouseDrag(ClassMouseODisc):
     mode : int
     sensitivity_y : int
+
+
+@dataclasses.dataclass
+class LDKMConfigInfo:
+    version : int
+    versionMessage : str
+    packageNameType : int
+    packageNamePattern : str
+    resolutionType : int
+    resolutionPattern : Resolution
+    priority : int
+    search : str
+
+@dataclasses.dataclass
+class LDKMKeyboardConfig:
+    mouseCenter : Coord
+    mouseScrollType : int
+    discType : int
+    advertising : bool
+    advertiseDuration : int
+    advertiseText : str
+    cancelPoint : Coord
+    cancelKey : int
+    cancelMode : int
+    cursor : str
+    extraData : str
+
+class LDKeyboardMapping(BaseModel):
+    _instances : typing.ClassVar[typing.Dict[str, "LDKeyboardMapping"]] = {}
+
+    keyboardMappings : typing.List[KeyboardMap]
+    configInfo : LDKMConfigInfo
+    keyboardConfig : LDKMKeyboardConfig
+
+    @field_validator("keyboardMappings", mode="before")
+    @classmethod
+    def _validate_keyboard_mappings(cls, v):
+        if not isinstance(v, list):
+            raise ValueError("keyboardMappings must be a list")
+        
+        if len(v) == 0:
+            raise ValueError("keyboardMappings must not be empty")
+        
+        ret =[]
+        for data in v:
+            mapObj = KeyboardMap.create(**data)
+            ret.append(mapObj)
+
+        return ret
+    
+    @classmethod
+    def fromPath(cls, path : str):
+        if path not in cls._instances:
+            with open(path, "r") as f:
+                rawdata = json.load(f)
+            cls._instances[path] = cls(**rawdata)
+        return cls._instances[path]

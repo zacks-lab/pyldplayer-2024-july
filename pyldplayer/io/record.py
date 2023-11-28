@@ -1,13 +1,13 @@
 
 from pydantic import BaseModel
 import typing
+import json
 
 class Point(BaseModel):
     id: int
     x: int
     y: int
     state: int
-
 
 class PutMultiTouch(BaseModel):
     timing: int
@@ -34,5 +34,15 @@ class RecordInfo(BaseModel):
     rebootTiming: int
 
 class Record(BaseModel):
+    _instances : typing.ClassVar[typing.Dict[str, "Record"]] = {}
+
     operations : typing.List[typing.Union[PutMultiTouch, PutScanCode]]
     recordInfo : RecordInfo
+
+    @classmethod
+    def fromPath(cls, path : str):
+        if path not in cls._instances:
+            with open(path, "r") as f:
+                rawdata = json.load(f)
+            cls._instances[path] = cls(**rawdata)
+        return cls._instances[path]
