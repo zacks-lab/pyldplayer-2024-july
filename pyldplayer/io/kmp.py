@@ -2,6 +2,7 @@ import dataclasses
 import typing
 from pydantic import BaseModel, field_validator
 from typing_extensions import TypedDict
+import json
 
 class Coord(TypedDict):
     x : int
@@ -154,6 +155,8 @@ class LDKMKeyboardConfig:
     extraData : str
 
 class LDKeyboardMapping(BaseModel):
+    _instances : typing.ClassVar[typing.Dict[str, "LDKeyboardMapping"]] = {}
+
     keyboardMappings : typing.List[KeyboardMap]
     configInfo : LDKMConfigInfo
     keyboardConfig : LDKMKeyboardConfig
@@ -173,3 +176,11 @@ class LDKeyboardMapping(BaseModel):
             ret.append(mapObj)
 
         return ret
+    
+    @classmethod
+    def fromPath(cls, path : str):
+        if path not in cls._instances:
+            with open(path, "r") as f:
+                rawdata = json.load(f)
+            cls._instances[path] = cls(**rawdata)
+        return cls._instances[path]
