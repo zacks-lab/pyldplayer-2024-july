@@ -45,6 +45,8 @@ class LDConsoleInstance(LimitedConsoleInterface):
         return f"LDInstance<{self.id} | {self.name}>"
         
 class LDConsolePlayer(ConsoleInterface):
+    __instances : typing.Dict[int, LDConsoleInstance]
+
     def __init__(self, path : typing.Union[str, LDConsole]):
         if isinstance(path, str):
             self.__console = LDConsole(path)
@@ -82,8 +84,14 @@ class LDConsolePlayer(ConsoleInterface):
         return self.__console.query("runninglist")
 
     def isrunning(self, id : typing.Union[str, int]):
-        return self.__console.query("isrunning", *self.__resolve_id(id))
+        res = self.__console.query("isrunning", *self.__resolve_id(id))
+        if res[0] == "stop":
+            return False
+        elif res[0] == "running":
+            return True
+        return res
 
+    
     def list2(self)-> typing.Dict[int, LDConsoleInstance]:
         res = self.__console.query("list2")
         
@@ -272,3 +280,16 @@ class LDConsolePlayer(ConsoleInterface):
 
     def operaterecord(self, id : typing.Union[str, int], content : str): 
         return self.__console.exec("operaterecord", *self.__resolve_id(id), "--content", content)
+    
+# ANCHOR
+
+    def __getitem__(self, id : typing.Union[str, int]):
+        if len(self.__instances) == 0:
+            self.list2()
+        for k, v in self.__instances.items():
+            if id == k:
+                return v
+            elif id == v.name:
+                return v    
+        
+        raise KeyError(id)
