@@ -11,7 +11,7 @@ for root, dirs, files in os.walk("pyldplayer"):
 
 setup(
     name="pyldplayer",
-    version="1.0.0a1",
+    version="1.0.0b1",
     author="Zackary W",
     description="python wrapper for ldplayer",
     packages=folders,
