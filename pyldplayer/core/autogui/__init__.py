@@ -76,6 +76,16 @@ class LDAutoGuiInstance:
         self.__window = wnd
         
     @property
+    def window(self):
+        """
+        Returns the 'gw.Window' object associated with the 'LDAutoGuiInstance' object.
+
+        :return: The 'gw.Window' object associated with the 'LDAutoGuiInstance' object.
+        :rtype: gw.Window
+        """
+        return self.__window
+        
+    @property
     def windowRect(self):
         """
         Return the rectangle representing the position and size of the window.
