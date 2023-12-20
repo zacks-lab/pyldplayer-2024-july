@@ -18,8 +18,7 @@ setup(
     install_requires=[
         "psutil",
         "pydantic",
-        "pygetwindow",
-        "pyautogui"
+        "pygetwindow"
     ],
     python_requires=">=3.8",
     long_description=open("README.md").read(),
@@ -28,4 +27,10 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
     ],
+    extra_require={
+        'auto' : ['pyautogui']
+    },
+    package_data={
+        '' : ['*.png']
+    }
 )
