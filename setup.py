@@ -11,7 +11,7 @@ for root, dirs, files in os.walk("pyldplayer"):
 
 setup(
     name="pyldplayer",
-    version="1.0.0b1",
+    version="1.0.0",
     author="Zackary W",
     description="python wrapper for ldplayer",
     packages=folders,
@@ -21,8 +21,8 @@ setup(
         "pygetwindow",
         "pyautogui"
     ],
-    python_requires=">=3.6",
-    long_description=open("README_PYPI.md").read(),
+    python_requires=">=3.8",
+    long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/ZackaryW/pyldplayer",
     classifiers=[

@@ -1,14 +1,32 @@
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any
-from pyldplayer._internal.console_interface.base import ConsoleInterface
-from pyldplayer._internal.console_interface.limited import LimitedConsoleInterface
-import typing
-from pyldplayer.console.config import LDModifyConfigDict
-from pyldplayer.console.ldconsole import LDConsole
+from pyldplayer._internal.consoleInterfaces.base import ConsoleInterface
+from pyldplayer._internal.consoleInterfaces.limited import LimitedConsoleInterface
 
-@dataclass(init=False)
+from pyldplayer.core.console_wrapper import LDConsoleWrapper
+import typing
+from typing import TypedDict, NotRequired, Tuple, Literal, Union
+
+class LDModifyConfigDict(TypedDict, total=False):
+    resolution: NotRequired[Tuple[int, int, int]]
+    cpu: NotRequired[Literal[1, 2, 3, 4]]
+    memory: NotRequired[Literal[512, 1024, 2048, 4096, 8192]]
+    manufacturer: NotRequired[str]
+    model: NotRequired[str]
+    pnumber: NotRequired[int]
+    imei: NotRequired[Union[Literal["auto"], str]]
+    imsi: NotRequired[Union[Literal["auto"], str]]
+    simserial: NotRequired[Union[Literal["auto"], str]]
+    androidid: NotRequired[Union[Literal["auto"], str]]
+    mac: NotRequired[Union[Literal["auto"], str]]
+    autorotate: NotRequired[bool]
+    lockwindow: NotRequired[bool]
+    root: NotRequired[bool]
+
+
+_methods = [x for x in dir(LimitedConsoleInterface) if not x.startswith("_")]
+@dataclass(frozen=True)
 class LDConsoleInstance(LimitedConsoleInterface):
     id : int
     name : str
@@ -17,48 +35,39 @@ class LDConsoleInstance(LimitedConsoleInterface):
     android_started_int : int
     pid : int
     pid_of_vbox : int
-
-    def __init__(self,__player : 'LDConsolePlayer', **kwargs) -> None:
-        if not isinstance(__player, LDConsolePlayer):
-            raise RuntimeError("player must be ConsolePlayer")
     
-        super().__init__()
-        self.__player = __player
-
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-    def __getattribute__(self, __name: str) -> Any:
+    _console : 'LDConsole'
+    _others : typing.Dict[str, object] = field(default_factory=dict)
+    
+    def __getattribute__(self, __name: str):
         if __name.startswith("_"):
             return super().__getattribute__(__name)
         
-        if __name not in dir(LimitedConsoleInterface):
+        if __name not in _methods:
             return super().__getattribute__(__name)
         
         def wrapper(*args, **kwargs):
-            method = getattr(self.__player, __name)
+            method = getattr(self._console, __name)
             return method(self.id, *args, **kwargs)
         
         return wrapper
     
     def __repr__(self) -> str:
-        return f"LDInstance<{self.id} | {self.name}>"
-        
-class LDConsolePlayer(ConsoleInterface):
+        return f"LDConsoleInstance<{self.name}>"
+    
+class LDConsole(ConsoleInterface):
+    __console : 'LDConsoleWrapper'
     __instances : typing.Dict[int, LDConsoleInstance]
-
-    def __init__(self, path : typing.Union[str, LDConsole]):
-        if isinstance(path, str):
-            self.__console = LDConsole(path)
-        else:
-            self.__console = path
-
+    
+    def __init__(self, ldw : LDConsoleWrapper):
+        if isinstance(ldw, str):
+            ldw = LDConsoleWrapper(ldw)
+        self.__console = ldw
         self.__instances = {}
-
-    @property
-    def path(self):
-        return self.__console.path
-
+        
+    def __hash__(self) -> int:
+        return hash(self.__ldw)
+    
     def __resolve_id(self, id : typing.Union[str, int]):
         args = []
         if isinstance(id, str):
@@ -68,7 +77,7 @@ class LDConsolePlayer(ConsoleInterface):
             args.append("--index")
             args.append(str(id))
         return args
-
+    
     def quit(self, id : typing.Union[str, int]): 
         self.__console.exec("quit", *self.__resolve_id(id))
 
@@ -94,7 +103,6 @@ class LDConsolePlayer(ConsoleInterface):
         elif res[0] == "running":
             return True
         return res
-
     
     def list2(self)-> typing.Dict[int, LDConsoleInstance]:
         res = self.__console.query("list2")
@@ -118,24 +126,25 @@ class LDConsolePlayer(ConsoleInterface):
 
             if x_id not in self.__instances:
                 self.__instances[x_id] = LDConsoleInstance(
-                    self, 
                     id = x_id,
                     name = x_name,
                     top_window_handle = x_top_window_handle,
                     bind_window_handle = x_bind_window_handle,
                     android_started_int = x_android_started_int,
                     pid = x_pid,
-                    pid_of_vbox = x_pid_of_vbox
+                    pid_of_vbox = x_pid_of_vbox,
+                    _console = self,
+                    _others = others
                 )
-                self.__instances[x_id]._others = others
             else:
-                self.__instances[x_id].name = x_name
-                self.__instances[x_id].top_window_handle = x_top_window_handle
-                self.__instances[x_id].bind_window_handle = x_bind_window_handle
-                self.__instances[x_id].android_started_int = x_android_started_int
-                self.__instances[x_id].pid = x_pid
-                self.__instances[x_id].pid_of_vbox = x_pid_of_vbox
-                self.__instances[x_id]._others = others
+                ins = self.__instances[x_id]
+                object.__setattr__(ins, 'name', x_name)
+                object.__setattr__(ins, 'top_window_handle', x_top_window_handle)
+                object.__setattr__(ins, 'bind_window_handle', x_bind_window_handle)
+                object.__setattr__(ins, 'android_started_int', x_android_started_int)
+                object.__setattr__(ins, 'pid', x_pid)
+                object.__setattr__(ins, 'pid_of_vbox', x_pid_of_vbox)
+                object.__setattr__(ins, '_others', others)
 
         # get all instances via list
         listitems = self.__console.query("list")
@@ -301,7 +310,7 @@ class LDConsolePlayer(ConsoleInterface):
     
 # ANCHOR
 
-    def __getitem__(self, id : typing.Union[str, int]):
+    def __getitem__(self, id : typing.Union[str, int]) -> LDConsoleInstance:
         """
         Get an item from the instance dictionary by ID or name.
 

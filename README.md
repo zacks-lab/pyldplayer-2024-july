@@ -12,22 +12,22 @@ you can refer to [cli doc](https://www.ldplayer.net/blog/introduction-to-ldplaye
 in addition, this library also supports loading record, keyboard mapping into pydantic dataclasses
 ```py
 from time import sleep
-from pyldplayer.autogui.player import LDAutoPlayer
-from pyldplayer.console.player import LDConsolePlayer
+from pyldplayer import LDAutoGui
+from pyldplayer import LDConsole
 
-console = LDConsolePlayer(path)
-auto = LDAutoPlayer(x)
+x = LDConsole("xxxxxxxxxxxxxxxxxxxxx")
+autox = LDAutoGui(x)
 
-cinstance = console[3]
-cinstance.launch()
+w = x[3]
+w.launch()
+autow = autox.waitFor(3)
+autow.screenshot()
 
-sleep(2)
-
-autoinstance = auto["some name"]
-autoinstance.fullscreen()
+oprr = autow.operationRecorder()
+oprr.runScript(3)
 ```
 
 ## changelog
-* 🐞 fixed instance will be terminated if script ended
-* 🐞 fixed unsanitized query results
-* ⭐ fully documented
+* fixed instance will be terminated if script ended
+* fixed unsanitized query results
+* fully documented
