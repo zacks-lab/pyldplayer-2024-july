@@ -1,7 +1,7 @@
 
 import time
 
-from eel import sleep
+from time import sleep
 from pyldplayer.core.autogui.operationRecorder import LDOperationRecorder
 from pyldplayer.core.console import LDConsole, LDConsoleInstance
 import typing

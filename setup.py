@@ -11,10 +11,10 @@ for root, dirs, files in os.walk("pyldplayer"):
 
 setup(
     name="pyldplayer",
-    version="1.0.0",
+    version="1.0.2",
     author="Zackary W",
     description="python wrapper for ldplayer",
-    packages=folders,
+    packages=folders+["pyldplayer"],
     install_requires=[
         "psutil",
         "pydantic",
