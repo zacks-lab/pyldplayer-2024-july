@@ -185,31 +185,43 @@ class LDAutoGuiInstance:
 
     def clickAt(
         self,
-        x, y,
+        x : typing.Union[float, str], 
+        y : float = None, 
         trimBoundary : int = 40,
+        imgConfidence : float = 0.8,
         method : typing.Callable = pg.click
     ):
+        self.__activate_wnd()
         rect = self.__windowTrimMenu(trimBoundary)
-        
-        x = rect[0] + x
-        y = rect[1] + y
-        
+        match (x, y):
+            case float(x), float(y):
+                
+                x = rect[0] + x
+                y = rect[1] + y 
+            case str(x), None:
+                res  = pg.locateOnScreen(x, region=rect, grayscale=True, confidence=imgConfidence)
+                
+                if res is None:
+                    raise ValueError("cannot locate image: %s" % x)
+                center = pg.center(res)
+                x, y = center
+            case _:
+                raise ValueError("invalid parameters")
+
         method(x, y)
+        
         
     def locateAt(
         self,
         img : str,
         trimBoundary : int = 40,
-        method : typing.Callable = pg.click
     ):
+        self.__activate_wnd()
         rect = self.__windowTrimMenu(trimBoundary)
         
         x, y = pg.locateCenterOnScreen(img, region=rect)
         
-        x = rect[0] + x
-        y = rect[1] + y
-        
-        method(x, y)
+        return x, y
         
         
         
