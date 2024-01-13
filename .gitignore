@@ -153,3 +153,4 @@ cython_debug/
 main.py
 testing
 config.json
+test.py
