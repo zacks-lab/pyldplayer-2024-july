@@ -11,14 +11,15 @@ for root, dirs, files in os.walk("pyldplayer"):
 
 setup(
     name="pyldplayer",
-    version="1.0.2",
+    version="1.1.0",
     author="Zackary W",
     description="python wrapper for ldplayer",
     packages=folders+["pyldplayer"],
     install_requires=[
         "psutil",
         "pydantic",
-        "pygetwindow"
+        "pygetwindow",
+        "click"
     ],
     python_requires=">=3.8",
     long_description=open("README.md").read(),
@@ -29,6 +30,12 @@ setup(
     ],
     extra_require={
         'auto' : ['pyautogui']
+    },
+    entry_points={
+        'console_scripts': [
+            'ldclick=pyldplayer.cli:LdCli',
+            'ldshell=pyldplayer.cli:LdShell'
+        ]
     },
     package_data={
         '' : ['*.png']
