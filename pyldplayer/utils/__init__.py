@@ -31,7 +31,7 @@ def find_ldconsole():
         suspected_path =os.path.join(suspected_directory, "ldconsole.exe")
 
         if not os.path.exists(suspected_path):
-            return None
+            continue
 
         return suspected_path
 
