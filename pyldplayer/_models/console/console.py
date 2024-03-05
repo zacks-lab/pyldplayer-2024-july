@@ -82,7 +82,4 @@ class ConsoleInterface:
     def operateinfo(self, id : typing.Union[str, int], file : str): pass
 
     def operaterecord(self, id : typing.Union[str, int], content : str): pass
-
-
-
     

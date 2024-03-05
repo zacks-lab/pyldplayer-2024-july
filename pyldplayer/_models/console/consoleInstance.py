@@ -1,4 +1,10 @@
-class LimitedConsoleInterface:
+
+import typing
+
+from pyldplayer._models.console.modifyCfg import ModifyCfg
+
+
+class ConsoleInstanceInterface:
     def quit(self): pass
 
     def launch(self): pass
@@ -13,7 +19,7 @@ class LimitedConsoleInterface:
 
     def rename(self, name : str): pass
 
-    def modify(self, **kwargs): pass
+    def modify(self, **kwargs : typing.Unpack[ModifyCfg]): pass
 
     def installapp(self, filename : str = None, packagename : str = None): pass
 
@@ -25,7 +31,7 @@ class LimitedConsoleInterface:
 
     def locate(self, lng : str, lat : str): pass
 
-    def adb(self, command : str): pass
+    def adb(self, command : str, raw : bool = False): pass
 
     def setprop(self, key : str, value : str): pass
 
@@ -55,4 +61,33 @@ class LimitedConsoleInterface:
 
     def operaterecord(self, content : str): pass
 
-    
+InstanceInterfaceMethods = [
+    "quit",
+    "launch",
+    "reboot",
+    "isrunning",
+    "copy",
+    "remove",
+    "rename",
+    "modify",
+    "installapp",
+    "uninstallapp",
+    "runapp",
+    "killapp",
+    "locate",
+    "adb",
+    "setprop",
+    "getprop",
+    "downcpu",
+    "backup",
+    "restore",
+    "action",
+    "scan",
+    "pull",
+    "push",
+    "backupapp",
+    "restoreapp",
+    "launchex",
+    "operatelist",
+    "operaterecord"
+]
