@@ -1,10 +1,10 @@
 
-I'm archiving the current project as I've found that employing object-oriented programming (OOP) for instances results in excessive overhead and is not user-friendly. This project has been completely re-envisioned, leading to the development of a new project. 
+## I'm archiving the current project as I've found that employing OOP for instances results in excessive overhead and is not user-friendly. This project has been completely re-envisioned, leading to the development of a new project. 
 # [reldplayer](https://github.com/ZackaryW/reldplayer)
 Key improvements of the new project include:
-Enhanced maintainability and efficiency, with Rye managing the project and toolchain.
-Improved lazy import logic for better performance.
-Simplified integration process.
+- Enhanced maintainability and efficiency, with Rye managing the project and toolchain.
+- Improved lazy import logic for better performance.
+- Simplified integration process.
 
 # pyldplayer
 this module provides all the necessary interfaces to interact with LDPlayer app
